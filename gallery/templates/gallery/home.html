@@ -25,8 +25,8 @@
             justify-content: center; 
             gap: 2rem; }
         .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; width: 320px; 
-            flex: 0 0 auto;}
-        .card:hover { transform: translateY(-5px); }
+            flex: 0 0 auto; cursor: pointer; position: relative; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         
         /* Cloudinary Image Container */
         .img-container { width: 100%; height: 250px; background: #eee; }
@@ -36,9 +36,90 @@
         .card-title { margin: 0 0 0.5rem 0; font-size: 1.25rem; }
         .card-text { color: #666; font-size: 0.9rem; margin: 0; }
         .date { font-size: 0.8rem; color: #999; margin-top: 1rem; display: block; }
+
+        .edit-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            overflow: hidden;
+            position: relative;
+            animation: modalFadeIn 0.3s;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1100;
+        }
+        .modal-img { width: 100%; max-height: 500px; object-fit: cover; }
+        .modal-body { padding: 2.5rem; }
+        .modal-title { font-size: 2rem; margin-bottom: 1rem; color: var(--text); }
+        .modal-desc { font-size: 1.1rem; line-height: 1.6; color: #555; white-space: pre-wrap; }
     </style>
 </head>
 <body>
+    <div id="recipeModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <div class="modal-content">
+            <img id="modalImg" src="" class="modal-img">
+            <div class="modal-body">
+                <h2 id="modalTitle" class="modal-title"></h2>
+                <div id="modalDesc" class="modal-desc"></div>
+                <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+                <div id="modalActions" style="text-align: right;">
+                    {% if perms.gallery.change_recipephoto %}
+                        <a id="editLink" href="#" class="btn-submit" style="text-decoration: none; width: auto; background: #f39c12;">Edit Recipe</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <div style="text-align: right; margin-bottom: 1rem; font-size: 0.9rem;">
@@ -53,7 +134,7 @@
                 {% endif %}
             </div>
             <h1>Recipe Asset Manager</h1>
-            <p>Enterprise Grade Image Processing</p>
+            <p>Your Personal Culinary Collection</p>
         </div>
 
         <div style="max-width: 600px; margin: 0 auto 2rem auto;">
@@ -72,26 +153,18 @@
 
         <div class="gallery-grid">
             {% for photo in photos %}
-            <div class="card">
+            <div class="card" onclick="openModal('{{ photo.image.url|escapejs }}', '{{ photo.title|escapejs }}', '{{ photo.description|escapejs }}', '{% url 'edit_recipe' photo.pk %}')">
+                {% if perms.gallery.change_recipephoto %}
+                    <div class="edit-badge">Admin</div>
+                {% endif %}
                 <div class="img-container">
-                    {% if perms.gallery.change_recipephoto %}
-                    <a href="{% url "edit_recipe" photo.pk  %}">
-                        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
-                    </a>
-                    {% else %}
-                        <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
-                    {% endif %}
+                    <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
                 </div>
 
                 <div class="card-body">
                     <h3 class="card-title">{{ photo.title }}</h3>
                     <p class="card-text">{{ photo.description|truncatewords:15 }}</p>
                     <span class="date">Uploaded: {{ photo.uploaded_at|date:"M d, Y" }}</span>
-                    {% if perms.gallery.change_recipephoto %}
-                    <p style="margin-top: 10px; font-size: 0.8rem; color: var(--primary);">
-                        <em>Click image to edit or delete</em>
-                    </p>
-                    {% endif %}
                 </div>
             </div>
             {% empty %}
@@ -117,5 +190,37 @@
         </div>
         {% endif %}
     </div>
+
+    <script>
+        const modal = document.getElementById("recipeModal");
+        const modalImg = document.getElementById("modalImg");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalDesc = document.getElementById("modalDesc");
+        const editLink = document.getElementById("editLink");
+        const span = document.getElementsByClassName("close-modal")[0];
+
+        function openModal(imgUrl, title, desc, editUrl) {
+            modal.style.display = "block";
+            modalImg.src = imgUrl;
+            modalTitle.innerText = title;
+            modalDesc.innerText = desc;
+            if (editLink) {
+                editLink.href = editUrl;
+            }
+            document.body.style.overflow = "hidden"; // Prevent background scroll
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                document.body.style.overflow = "auto";
+            }
+        }
+    </script>
 </body>
 </html>

@@ -3,7 +3,6 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models import Q
-from django.contrib import messages
 from .models import RecipePhoto
 from .forms import RecipePhotoForm
 import cloudinary.uploader
@@ -12,7 +11,7 @@ class GalleryListView(ListView):
     model = RecipePhoto
     template_name = 'gallery/home.html'
     context_object_name = 'photos'
-    paginate_by = 2
+    paginate_by = 4
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
@@ -35,10 +34,6 @@ class RecipePhotoCreateView(PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy('gallery_home')
     permission_required = 'gallery.add_recipephoto'
 
-    def form_valid(self, form):
-        messages.success(self.request, "Photo uploaded successfully!")
-        return super().form_valid(form)
-
 class RecipePhotoUpdateView(PermissionRequiredMixin, UpdateView):
     model = RecipePhoto
     form_class = RecipePhotoForm
@@ -46,10 +41,6 @@ class RecipePhotoUpdateView(PermissionRequiredMixin, UpdateView):
     context_object_name = 'photo'
     success_url = reverse_lazy('gallery_home')
     permission_required = 'gallery.change_recipephoto'
-
-    def form_valid(self, form):
-        messages.success(self.request, f"'{form.instance.title}' updated successfully!")
-        return super().form_valid(form)
 
 class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
     model = RecipePhoto
@@ -61,7 +52,6 @@ class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
     def form_valid(self, form):
         try:
             photo = self.get_object()
-            title = photo.title
             
             # Delete from Cloudinary if image exists
             if photo.image:
@@ -73,8 +63,6 @@ class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
                 except Exception as e:
                     print(f"Cloudinary deletion failed: {e}")
             
-            messages.success(self.request, f"'{title}' was completely deleted.")
             return super().form_valid(form)
         except Exception as e:
-            messages.error(self.request, f"Delete failed: {str(e)}")
             return redirect('gallery_home')
