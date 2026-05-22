@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloudinary Recipe Gallery</title>
+    <title>Cloudinary Culinary Gallery</title>
     <style>
         :root { --primary: #ff6b6b; --bg: #f8f9fa; --card-bg: #ffffff; --text: #333; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 2rem; }
@@ -113,7 +113,7 @@
                 <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
                 <div id="modalActions" style="text-align: right;">
                     {% if perms.gallery.change_recipephoto %}
-                        <a id="editLink" href="#" class="btn-submit" style="text-decoration: none; width: auto; background: #f39c12;">Edit Recipe</a>
+                        <a id="editLink" href="#" class="btn-submit" style="text-decoration: none; width: auto; background: #f39c12;">Edit Photo</a>
                     {% endif %}
                 </div>
             </div>
@@ -133,13 +133,13 @@
                     <a href="{% url 'login' %}" style="color:var(--primary); text-decoration:none;">Login</a>
                 {% endif %}
             </div>
-            <h1>Recipe Asset Manager</h1>
+            <h1>Culinary Asset Manager</h1>
             <p>Your Personal Culinary Collection</p>
         </div>
 
         <div style="max-width: 600px; margin: 0 auto 2rem auto;">
             <form method="GET" style="display: flex; gap: 10px;">
-                <input type="text" name="q" value="{{ query }}" placeholder="Search recipes..." class="form-control" style="margin: 0;">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search gallery..." class="form-control" style="margin: 0;">
                 <button type="submit" class="btn-submit" style="width: auto;">Search</button>
                 {% if query %}<a href="/" class="btn-submit" style="width: auto; background: #999; text-decoration: none;">Clear</a>{% endif %}
             </form>
@@ -169,7 +169,7 @@
             </div>
             {% empty %}
             <div style="grid-column: 1 / -1; text-align: center; color: #999;">
-                <p>No recipes found.</p>
+                <p>No dishes found.</p>
             </div>
             {% endfor %}
         </div>
