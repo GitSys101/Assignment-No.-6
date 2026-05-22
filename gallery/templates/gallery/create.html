@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Recipe Photo</title>
+    <style>
+        :root { --primary: #ff6b6b; --bg: #f8f9fa; --card-bg: #ffffff; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
+        .upload-section { background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 600px; margin: 0 auto; }
+        .form-control { width: 100%; padding: 0.75rem; margin-top: 0.5rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 1rem; cursor: pointer; width: 100%; transition: background 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="upload-section">
+        <h2 style="margin-top: 0;">Upload New Photo</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-submit">Upload Recipe</button>
+        </form>
+        <a href="{% url 'gallery_home' %}" style="display: block; text-align: center; margin-top: 1.5rem; color: #999; text-decoration: none;">
+            &larr; Back to Gallery
+        </a>
+    </div>
+</body>
+</html>
