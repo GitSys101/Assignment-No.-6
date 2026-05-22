@@ -43,23 +43,18 @@ class RecipePhotoUpdateView(PermissionRequiredMixin, UpdateView):
     model = RecipePhoto
     form_class = RecipePhotoForm
     template_name = 'gallery/edit.html'
+    context_object_name = 'photo'
     success_url = reverse_lazy('gallery_home')
     permission_required = 'gallery.change_recipephoto'
 
     def form_valid(self, form):
-        try:
-            self.object = form.save()
-            messages.success(self.request, f"'{form.instance.title}' updated successfully!")
-            return super().form_valid(form)
-        except Exception as e:
-            import traceback
-            error_msg = f"UPDATE ERROR: {str(e)}\n\nTraceback: {traceback.format_exc()}"
-            messages.error(self.request, error_msg)
-            return self.form_invalid(form)
+        messages.success(self.request, f"'{form.instance.title}' updated successfully!")
+        return super().form_valid(form)
 
 class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
     model = RecipePhoto
     template_name = 'gallery/delete.html'
+    context_object_name = 'photo'
     success_url = reverse_lazy('gallery_home')
     permission_required = 'gallery.delete_recipephoto'
 
@@ -67,16 +62,19 @@ class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
         try:
             photo = self.get_object()
             title = photo.title
+            
+            # Delete from Cloudinary if image exists
             if photo.image:
                 try:
-                    cloudinary.uploader.destroy(photo.image.public_id)
+                    # CloudinaryField value has public_id if it's a valid resource
+                    public_id = getattr(photo.image, 'public_id', None)
+                    if public_id:
+                        cloudinary.uploader.destroy(public_id)
                 except Exception as e:
                     print(f"Cloudinary deletion failed: {e}")
+            
             messages.success(self.request, f"'{title}' was completely deleted.")
             return super().form_valid(form)
         except Exception as e:
-            import traceback
-            error_msg = f"DELETE ERROR: {str(e)}\n\nTraceback: {traceback.format_exc()}"
-            messages.error(self.request, error_msg)
-            # Redirect back to the gallery if deletion fails entirely
+            messages.error(self.request, f"Delete failed: {str(e)}")
             return redirect('gallery_home')
