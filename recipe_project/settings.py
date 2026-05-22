@@ -48,10 +48,14 @@ INSTALLED_APPS = [
     'gallery',
 ]
 
+cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME') or os.getenv('CLOUD_NAME')
+api_key = os.getenv('CLOUDINARY_API_KEY') or os.getenv('API_KEY')
+api_secret = os.getenv('CLOUDINARY_API_SECRET') or os.getenv('API_SECRET')
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'CLOUD_NAME': cloud_name,
+    'API_KEY': api_key,
+    'API_SECRET': api_secret,
 }
 
 STORAGES = {
@@ -64,9 +68,9 @@ STORAGES = {
 }
 
 cloudinary.config(
-    cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
-    api_key = os.getenv('CLOUDINARY_API_KEY'),
-    api_secret = os.getenv('CLOUDINARY_API_SECRET'),
+    cloud_name = cloud_name,
+    api_key = api_key,
+    api_secret = api_secret,
     secure = True
 )
 
