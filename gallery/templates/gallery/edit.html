@@ -22,9 +22,18 @@
         
         <!-- Show current image as a reminder -->
         <p style="margin-bottom: 0.5rem; color: #666;">Current Image:</p>
-        <img src="{{ photo.image.url }}" class="img-preview" alt="{{ photo.title }}">
+        {% if photo.image %}
+            <img src="{{ photo.image.url }}" class="img-preview" alt="{{ photo.title }}">
+        {% endif %}
         
         <form method="POST" enctype="multipart/form-data">
+            {% if messages %}
+                <ul class="messages" style="color: red; list-style-type: none; padding: 0;">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             {% csrf_token %}
             {{ form.as_p }}
             

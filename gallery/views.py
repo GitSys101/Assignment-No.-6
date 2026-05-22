@@ -47,8 +47,15 @@ class RecipePhotoUpdateView(PermissionRequiredMixin, UpdateView):
     permission_required = 'gallery.change_recipephoto'
 
     def form_valid(self, form):
-        messages.success(self.request, f"'{form.instance.title}' updated successfully!")
-        return super().form_valid(form)
+        try:
+            self.object = form.save()
+            messages.success(self.request, f"'{form.instance.title}' updated successfully!")
+            return super().form_valid(form)
+        except Exception as e:
+            import traceback
+            error_msg = f"UPDATE ERROR: {str(e)}\n\nTraceback: {traceback.format_exc()}"
+            messages.error(self.request, error_msg)
+            return self.form_invalid(form)
 
 class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
     model = RecipePhoto
@@ -57,12 +64,19 @@ class RecipePhotoDeleteView(PermissionRequiredMixin, DeleteView):
     permission_required = 'gallery.delete_recipephoto'
 
     def form_valid(self, form):
-        photo = self.get_object()
-        title = photo.title
-        if photo.image:
-            try:
-                cloudinary.uploader.destroy(photo.image.public_id)
-            except Exception as e:
-                print(f"Cloudinary deletion failed: {e}")
-        messages.success(self.request, f"'{title}' was completely deleted.")
-        return super().form_valid(form)
+        try:
+            photo = self.get_object()
+            title = photo.title
+            if photo.image:
+                try:
+                    cloudinary.uploader.destroy(photo.image.public_id)
+                except Exception as e:
+                    print(f"Cloudinary deletion failed: {e}")
+            messages.success(self.request, f"'{title}' was completely deleted.")
+            return super().form_valid(form)
+        except Exception as e:
+            import traceback
+            error_msg = f"DELETE ERROR: {str(e)}\n\nTraceback: {traceback.format_exc()}"
+            messages.error(self.request, error_msg)
+            # Redirect back to the gallery if deletion fails entirely
+            return redirect('gallery_home')
